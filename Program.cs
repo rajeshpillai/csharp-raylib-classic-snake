@@ -11,7 +11,7 @@ namespace SnakeGame
             // Window and game settings
             int screenWidth = 800;
             int screenHeight = 600;
-            Raylib.InitWindow(screenWidth, screenHeight, "Classic Snake Game");
+            Raylib.InitWindow(screenWidth, screenHeight, "Enhanced Snake Game");
 
             // Set initial FPS and store it in a variable to adjust later
             int fps = 10;
@@ -20,6 +20,16 @@ namespace SnakeGame
             int gridSize = 20;
             int gridWidth = screenWidth / gridSize;
             int gridHeight = screenHeight / gridSize;
+
+            // Custom colors
+            Color snakeColor = Color.Blue;
+            Color foodColor = Color.Yellow;
+            Color backgroundColor = Color.DarkGray;
+
+            // Load sounds
+            Raylib.InitAudioDevice();
+            Sound eatSound = Raylib.LoadSound("./sound/eat.wav");
+            Sound gameOverSound = Raylib.LoadSound("./sound/game_over.wav");
 
             // Game variables
             List<(int x, int y)> snake = new List<(int, int)> { (gridWidth / 2, gridHeight / 2) };
@@ -38,7 +48,7 @@ namespace SnakeGame
                 {
                     // Display Game Over message
                     Raylib.BeginDrawing();
-                    Raylib.ClearBackground(Color.Black);
+                    Raylib.ClearBackground(backgroundColor);
                     Raylib.DrawText("Game Over! Press ENTER to restart", screenWidth / 2 - 200, screenHeight / 2, 20, Color.White);
                     Raylib.DrawText($"Final Score: {score}", screenWidth / 2 - 60, screenHeight / 2 + 40, 20, Color.White);
                     Raylib.EndDrawing();
@@ -75,12 +85,14 @@ namespace SnakeGame
                 if (newHead.x < 0 || newHead.x >= gridWidth || newHead.y < 0 || newHead.y >= gridHeight)
                 {
                     gameOver = true;
+                    Raylib.PlaySound(gameOverSound);
                 }
 
                 // Self-collision
                 if (snake.Contains(newHead))
                 {
                     gameOver = true;
+                    Raylib.PlaySound(gameOverSound);
                 }
 
                 if (!gameOver)
@@ -97,6 +109,7 @@ namespace SnakeGame
                         score++;
                         snakeLength++;
                         food = (rand.Next(0, gridWidth), rand.Next(0, gridHeight));
+                        Raylib.PlaySound(eatSound);
 
                         // Increase speed slightly as the snake grows
                         if (score % 5 == 0)
@@ -109,15 +122,15 @@ namespace SnakeGame
 
                 // Drawing
                 Raylib.BeginDrawing();
-                Raylib.ClearBackground(Color.Black);
+                Raylib.ClearBackground(backgroundColor);
 
                 // Draw food
-                Raylib.DrawRectangle(food.x * gridSize, food.y * gridSize, gridSize, gridSize, Color.Red);
+                Raylib.DrawRectangle(food.x * gridSize, food.y * gridSize, gridSize, gridSize, foodColor);
 
                 // Draw snake
                 foreach (var segment in snake)
                 {
-                    Raylib.DrawRectangle(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize, Color.Green);
+                    Raylib.DrawRectangle(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize, snakeColor);
                 }
 
                 // Draw score
@@ -126,8 +139,11 @@ namespace SnakeGame
                 Raylib.EndDrawing();
             }
 
+            // Unload sounds and close audio device
+            Raylib.UnloadSound(eatSound);
+            Raylib.UnloadSound(gameOverSound);
+            Raylib.CloseAudioDevice();
             Raylib.CloseWindow();
         }
     }
 }
-
